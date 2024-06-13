@@ -21,13 +21,15 @@ Using this dataset, we create a model to predict the performance index. In the s
 ## Technologies Used
 - Python
 - Flask
-- Linear Regression
 - JavaScript
 - HTML
 - CSS
 
 ## Features
 - Students can take exams based on their performance level.
+
+## Demo
+To see the system in action, check out our demo video: [Demo Video](https://drive.google.com/file/d/1vXU4E7_DeKLJPjPUNO--nh8net42Gyqs/view?usp=sharing)
 
 ## Contact Information
 - Email: [pushpikaliyanagama@gmail.com](mailto:pushpikaliyanagama@gmail.com)

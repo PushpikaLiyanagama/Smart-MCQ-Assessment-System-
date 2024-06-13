@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Study Level Prediction</title>
+
+
+    <style>
+      body {
+        background: #236170 ;
+        padding: 30px;
+        text-align: center;
+        font-family: 'Oswald', sans-serif;
+        }
+
+        h1 {
+            color: #ffffff;
+        }
+
+        form {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: rgb(7, 7, 7);
+
+        }
+
+        select,
+        input[type="number"] {
+            width: 75%;
+            padding: 12px;
+            margin-bottom: 20px;
+            border: 3px solid #03a506;
+            border-radius: 8px;
+            background: #f8f6f6;
+            color: #333;
+            font-size: 1em;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        input[type="submit"] {
+            outline: 0;
+            padding: 12px;
+            width: 50%;
+            border: 3px solid #03a506;
+            border-radius: 8px;
+            transition: background 0.3s, color 0.3s;
+            cursor: pointer;
+            background: #03a506;
+            color: #f4f4f4;
+            font-size: 1.2em;
+            font-weight: 550;
+            font-family: 'Montserrat', sans-serif;
+        }
+
+        input[type="submit"]:hover {
+            background: #026c03;
+            color: #f2f2f2;
+        }
+
+
+        br {
+            margin-top: 15px;
+            display: block;
+            content: '';
+        }
+
+
+        form {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+    </style>
+
+</head>
+<body>
+    <h1>Predicting Your Study Level</h1>
+
+
+    <form action="/predict" method="post">
+        <label for="hours_studied">Hours Studied for Quiz:</label>
+        <select id="hours_studied" name="hours_studied" required>
+            <option value="" disabled selected>Select hours studied (1-10)</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select><br><br>
+
+        
+
+        <label for="previous_scores">Previous Score of the Quiz (0 - 100):</label>
+        <input type="number" id="previous_scores" name="previous_scores" required min="0" max="100"><br><br>
+
+        <label for="extracurricular_activities">Do You Do Extracurricular Activities?</label>
+        <select id="extracurricular_activities" name="extracurricular_activities" required>
+            <option value="Yes">Yes</option>
+            <option value="No">No</option>
+        </select><br><br>
+
+        <label for="sleep_hours">Sleeping Hours (Day Before the Quiz):</label>
+        <select id="sleep_hours" name="sleep_hours" required>
+            <option value="" disabled selected>Select sleeping hours (1-10)</option>
+            
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select><br><br>
+
+
+
+        <label for="sample_papers_practiced">Sample Papers Practiced Before the Quiz:</label>
+        <select id="sample_papers_practiced" name="sample_papers_practiced" required>
+            <option value="" disabled selected>Select practiced Papers (1-10)</option>
+        
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select><br><br>
+
+        <input type="submit" value="Enter to Quiz">
+    </form>
+</body>
+</html>

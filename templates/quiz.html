@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>MCQ Quiz</title>
+    <style>
+       body {
+        background: #236170 ;
+        font-family: 'Arial', sans-serif;
+        margin: 0;
+        padding: 0;
+         }
+
+        h1 {
+            text-align: center;
+            color: #f3f0f0;
+        }
+
+        #timer {
+            font-size: 20px;
+            color: red;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 105px;
+            background-color: #ecf0f1;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        p {
+            font-size: 18px;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        input[type="radio"] {
+            margin-bottom: 5px;
+        }
+
+        input[type="submit"] {
+            background-color: #3498db;
+            color: #fff;
+            padding: 15px 30px; 
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 25px;
+            display: block;
+            margin: 0 auto;
+            
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9;
+        }
+
+
+        br {
+            margin-top: 10px;
+            display: block;
+            content: '';
+        }
+
+
+        @media screen and (max-width: 600px) {
+            form {
+                width: 90%;
+            }
+        }
+
+    </style>
+</head>
+<body>
+    <h1>MCQ Quiz</h1>
+    <div id="timer"></div>
+    <form action="/submit" method="post" id="quizForm"> 
+        {% for question in questions %}
+        <p>{{ question[0] }}</p>
+        <input type="radio" name="question{{ loop.index }}" value="{{ question[1] }}"> {{ question[1] }}<br>
+        <input type="radio" name="question{{ loop.index }}" value="{{ question[2] }}"> {{ question[2] }}<br>
+        <input type="radio" name="question{{ loop.index }}" value="{{ question[3] }}"> {{ question[3] }}<br>
+        <input type="radio" name="question{{ loop.index }}" value="{{ question[4] }}"> {{ question[4] }}<br><br>
+        {% endfor %}
+        <input type="hidden" name="level" value="{{ level }}">
+        <input type="submit" value="Submit">
+    </form>
+    <script>
+        window.onload = function () {
+            var timeLeft = 120; 
+            var timer = setInterval(function () {
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    document.getElementById('timer').innerHTML = 'Time\'s up!';
+                    document.getElementById('quizForm').submit(); 
+                } else {
+                    var minutes = Math.floor(timeLeft / 60);
+                    var seconds = timeLeft % 60;
+                    document.getElementById('timer').innerHTML = 'Time Remaining: ' + minutes + 'min ' + seconds + 'sec';
+                }
+                timeLeft -= 1;
+            }, 1000); 
+        }
+    </script>
+</body>
+</html>

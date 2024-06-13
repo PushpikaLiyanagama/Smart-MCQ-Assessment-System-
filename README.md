@@ -24,6 +24,7 @@ Using this dataset, we create a model to predict the performance index. In the s
 - JavaScript
 - HTML
 - CSS
+- MySQL DB
 
 ## Features
 - Students can take exams based on their performance level.

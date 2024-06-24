@@ -1,43 +1,45 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for, session
 import pickle
 import numpy as np
-import pickle
 import pandas as pd
 import mysql.connector
 
+app = Flask(__name__)
+app.secret_key = 'your_secret_key'
 
-model = pickle.load(open('finalModel.pkl','rb'))
-enc = pickle.load(open('finalEncoder.pkl','rb'))
+model = pickle.load(open('finalModel.pkl', 'rb'))
+enc = pickle.load(open('finalEncoder.pkl', 'rb'))
 
 df = pd.read_csv("student_Performance.csv")
-X = df.drop(labels=['Performance Index'],axis=1)
+X = df.drop(labels=['Performance Index'], axis=1)
 Y = df[['Performance Index']]
 
 def catconsep(df):
-    cat = list(df.columns[df.dtypes=='object'])
-    con = list(df.columns[df.dtypes!='object'])
-    return cat,con
-cat,con = catconsep(df)
+    cat = list(df.columns[df.dtypes == 'object'])
+    con = list(df.columns[df.dtypes != 'object'])
+    return cat, con
 
-cat1,con1 = catconsep(X)
+cat, con = catconsep(df)
+cat1, con1 = catconsep(X)
+
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
-num_pipe = Pipeline(steps=[('SimpleImputer',SimpleImputer(strategy='mean')),
-                           ('Scaler',StandardScaler())])
-cat_pipe = Pipeline(steps = [('SimpleImputer', SimpleImputer(strategy='most_frequent')),
-                             ('OHE',OneHotEncoder(handle_unknown='ignore'))])
-pre = ColumnTransformer([('num',num_pipe,con1),
-                        ('cat',cat_pipe,cat1)])
+
+num_pipe = Pipeline(steps=[('SimpleImputer', SimpleImputer(strategy='mean')),
+                           ('Scaler', StandardScaler())])
+cat_pipe = Pipeline(steps=[('SimpleImputer', SimpleImputer(strategy='most_frequent')),
+                           ('OHE', OneHotEncoder(handle_unknown='ignore'))])
+pre = ColumnTransformer([('num', num_pipe, con1),
+                         ('cat', cat_pipe, cat1)])
 cols = ['num__Hours Studied', 'num__Previous Scores', 'num__Sleep Hours',
-       'num__Sample Question Papers Practiced',
-       'cat__Extracurricular Activities_No',
-       'cat__Extracurricular Activities_Yes']
+        'num__Sample Question Papers Practiced',
+        'cat__Extracurricular Activities_No',
+        'cat__Extracurricular Activities_Yes']
 X_pre1 = pre.fit_transform(X)
 
-
-# MySQL connection setup 
+# MySQL connection setup
 mydb = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -45,40 +47,31 @@ mydb = mysql.connector.connect(
     database="tcc1_database"
 )
 
-app = Flask(__name__) # initializing a flask app
 
-
-
-@app.route('/',methods=['GET'])  # route to display the home page
+@app.route('/', methods=['GET'])
 def homePage():
     return render_template("input_form.html")
 
 
-@app.route('/predict',methods=['POST']) 
-def index():
+@app.route('/predict', methods=['POST'])
+def predict():
     if request.method == 'POST':
-        
-
-        hours_studied=int(request.form['hours_studied'])
+        hours_studied = int(request.form['hours_studied'])
         previous_scores = int(request.form['previous_scores'])
-        extracurricular_activities =request.form['extracurricular_activities']
+        extracurricular_activities = request.form['extracurricular_activities']
         sleep_hours = int(request.form['sleep_hours'])
         sample_papers_practiced = int(request.form['sample_papers_practiced'])
-        inPut = np.array([[hours_studied,previous_scores,extracurricular_activities,sleep_hours,sample_papers_practiced]])
 
+        inPut = np.array([[hours_studied, previous_scores, extracurricular_activities, sleep_hours, sample_papers_practiced]])
         inPut_df = pd.DataFrame(inPut, columns=['Hours Studied', 'Previous Scores', 'Extracurricular Activities',
-                                                    'Sleep Hours', 'Sample Question Papers Practiced'])
+                                                'Sleep Hours', 'Sample Question Papers Practiced'])
 
         X_pre = pre.transform(inPut_df)
         X_pre = pd.DataFrame(X_pre, columns=cols)
 
-        model=pickle.load(open('finalModel.pkl','rb'))
-
+        model = pickle.load(open('finalModel.pkl', 'rb'))
         prediction = model.predict(X_pre)
-        prediction_level = model.predict(X_pre) // 10
-
-        ##print('prediction is', prediction)
-
+        prediction_level = prediction // 10
 
         if 0 <= prediction_level < 2:
             level = 1
@@ -93,9 +86,14 @@ def index():
         else:
             level = 6
 
-        questions = fetch_questions(level)
-        return render_template('quiz.html', questions=questions, level=level)
+        session['level'] = level
+        session['current_question'] = 0
+        session['user_answers'] = []
+        session['questions'] = fetch_questions(level)
+
+        return redirect(url_for('quiz'))
     return render_template('input_form.html')
+
 
 def fetch_questions(level):
     mycursor = mydb.cursor()
@@ -104,44 +102,47 @@ def fetch_questions(level):
     questions = mycursor.fetchall()
     return questions
 
-@app.route('/submit', methods=['POST'])
+
+@app.route('/quiz', methods=['GET', 'POST'])
+def quiz():
+    current_question = session.get('current_question', 0)
+    user_answers = session.get('user_answers', [])
+    questions = session.get('questions', [])
+    level = session.get('level', 1)
+
+    if request.method == 'POST':
+        answer = request.form.get('answer')
+        if answer:
+            user_answers.append(answer)
+            session['user_answers'] = user_answers
+            current_question += 1
+            session['current_question'] = current_question
+
+        if current_question >= len(questions):
+            return redirect(url_for('submit'))
+
+    if current_question < len(questions):
+        question = questions[current_question]
+        return render_template('quiz_question.html', question=question, question_number=current_question + 1, total_questions=len(questions), level=level)
+
+    return redirect(url_for('submit'))
+
+
+@app.route('/submit', methods=['GET', 'POST'])
 def submit():
     score = 0
-    user_answers = []
-    questions = []
+    user_answers = session.get('user_answers', [])
+    questions = session.get('questions', [])
 
-    # Get the user's answers
-    for key, value in request.form.items():
-        if key.startswith('question'):
-            user_answers.append(value)
-    
-    level = int(request.form['level'])
-    questions = fetch_questions(level)
-
-    
-    if len(questions) != len(user_answers):
-        return "Error: Number of questions and submitted answers mismatch."
-
-    # Compare user's answers with correct answers
     for idx, question in enumerate(questions):
-        # Check if the index is within the range of user_answers list
         if idx < len(user_answers) and question[5] == user_answers[idx]:
             score += 1
-    
-    # Prepare lists of submitted and correct answers
-    submitted_answers = user_answers
-    correct_answers = [question[5] for question in questions]
 
-    # Calculate percentage
     total_questions = len(questions)
     percentage = (score / total_questions) * 100
 
-    return render_template('result.html', score=score, total=total_questions, percentage=percentage,
-                           submitted_answers=submitted_answers, correct_answers=correct_answers)
-
+    return render_template('result.html', score=score, total=total_questions, percentage=percentage, submitted_answers=user_answers, correct_answers=[q[5] for q in questions])
 
 
 if __name__ == "__main__":
-	app.run(debug=True,port=9000) # running the app
-
-
+    app.run(debug=True, port=9000)

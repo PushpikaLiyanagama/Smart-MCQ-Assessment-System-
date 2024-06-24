@@ -10,7 +10,7 @@ app.secret_key = 'your_secret_key'
 model = pickle.load(open('finalModel.pkl', 'rb'))
 enc = pickle.load(open('finalEncoder.pkl', 'rb'))
 
-df = pd.read_csv("F:\GitHub Projects\Smart-MCQ-Assessment-System-\dataset\Student_Performance.csv")
+df = pd.read_csv("F:\GitHub Projects\Smart-MCQ-Assessment-System-\database\tcc1_database.sql")
 X = df.drop(labels=['Performance Index'], axis=1)
 Y = df[['Performance Index']]
 
